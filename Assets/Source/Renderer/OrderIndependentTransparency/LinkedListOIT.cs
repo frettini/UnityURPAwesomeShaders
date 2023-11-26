@@ -1,10 +1,11 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using UnityEngine.Rendering.Universal;
 
 class LinkedListOIT
 {
     private int screenHeight, screenWidth;
-    private readonly int maxNumLayers = 2;
+    private readonly int maxNumLayers = 16;
 
     private ComputeBuffer startOffsetBuffer;
     private readonly int startOffsetBufferId;
@@ -17,12 +18,11 @@ class LinkedListOIT
     private readonly int initStartOffsetKernelId;
     private int dispatchGroupSizeX, dispatchGroupSizeY;
 
-
     public LinkedListOIT()
     {
         LLRendererMaterial = new Material(Resources.Load<Shader>("RenderLLOIT"));
         startOffsetBufferId = Shader.PropertyToID("startOffsetBuffer");
-        fragmentLLBufferId = Shader.PropertyToID("OITRendererPass");
+        fragmentLLBufferId = Shader.PropertyToID("fragmentLLBuffer");
 
         LLUtilsCompute = Resources.Load<ComputeShader>("OITLLUtils");
         initStartOffsetKernelId = LLUtilsCompute.FindKernel("InitStartOffsetBuffer");
@@ -43,7 +43,7 @@ class LinkedListOIT
         cmd.SetRandomWriteTarget(2, startOffsetBuffer);
     }
 
-    public void Execute(CommandBuffer cmd, RenderTargetIdentifier src, RenderTargetIdentifier dest)
+    public void Execute(CommandBuffer cmd, ref RenderingData renderingData, RenderTargetIdentifier src, RenderTargetIdentifier dest)
     {
         cmd.ClearRandomWriteTargets();
 

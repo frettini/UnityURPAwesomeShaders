@@ -25,55 +25,11 @@ Shader "Hidden/RenderLLOIT"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
             
-            #define SIZEOF_UINT 4
-            #define MAXFRAGS 2
-            
-            struct FragmentAndLinkBuffer_STRUCT
-            {
-                uint color;
-                uint depth;
-                uint next;
-            };
+            #include "Assets/Shaders/OIT/OITCommon.hlsl"
+            #include "Assets/Shaders/OIT/OITLinkedListCommon.hlsl"
             
             StructuredBuffer<FragmentAndLinkBuffer_STRUCT> fragmentLLBuffer : register(t0);
             ByteAddressBuffer startOffsetBuffer : register(t1);
-            
-            // move that to a separate file in time
-            
-            //https://github.com/GameTechDev/AOIT-Update/blob/master/OIT_DX11/AOIT%20Technique/AOIT.hlsl
-            // UnpackRGBA takes a uint value and converts it to a float4
-            float4 UnpackRGBA(uint packedInput)
-            {
-	            float4 unpackedOutput;
-	            uint4 p = uint4((packedInput & 0xFFUL),
-		            (packedInput >> 8UL) & 0xFFUL,
-		            (packedInput >> 16UL) & 0xFFUL,
-		            (packedInput >> 24UL));
-
-	            unpackedOutput = ((float4)p) / 255;
-	            return unpackedOutput;
-            }
-
-            // PackRGBA takes a float4 value and packs it into a UINT (8 bits / float)
-            uint PackRGBA(float4 unpackedInput)
-            {
-	            uint4 u = (uint4)(saturate(unpackedInput) * 255 + 0.5);
-	            uint packedOutput = (u.w << 24UL) | (u.z << 16UL) | (u.y << 8UL) | u.x;
-	            return packedOutput;
-            }
-
-            float UnpackDepth(uint uDepthSampleIdx) {
-	            return (float)(uDepthSampleIdx >> 8UL) / (pow(2, 24) - 1);
-            }
-
-            uint UnpackSampleIdx(uint uDepthSampleIdx) {
-	            return uDepthSampleIdx & 0xFFUL;
-            }
-
-            uint PackDepthSampleIdx(float depth, uint uSampleIdx) {
-	            uint d = (uint)(saturate(depth) * (pow(2, 24) - 1));
-	            return d << 8UL | uSampleIdx;
-            }
             
             struct appdata
             {
@@ -100,13 +56,13 @@ Shader "Hidden/RenderLLOIT"
                 return o;
             }
 
-            half4 frag (v2f input, uint uSampleIndex : SV_SampleIndex) : SV_Target
+            half4 frag (v2f input, uint uSampleIdx : SV_SampleIndex) : SV_Target
             {
                 half3 col = tex2D(_MainTex, input.uv).rgb;
                 
                 // for every pixel, sort the pixels and blend them
                 //float2 screenPos = input.screenPos / input.screenPos.w; 
-                float2 screenPos = (input.vertex.xy - 0.5);
+                float2 screenPos = input.vertex.xy-0.5;
                 
                 // get the first index in the LL from the startOffsetBuffer
                 uint address = SIZEOF_UINT * (screenPos.y * _ScreenParams.x + screenPos.x);
@@ -114,27 +70,24 @@ Shader "Hidden/RenderLLOIT"
                 
                 if(offset > 0)
                 {
-                    col = half3(screenPos.xy,0.);
                 }
                 
-                FragmentAndLinkBuffer_STRUCT tempFrag[MAXFRAGS];
+                FragmentAndLinkBuffer_STRUCT tempFrag[MAX_NUM_FRAGS];
                 uint numFragments = 0;
                 
                 // go through all frags in linked list
                 while(offset != 0)
                 {
                     FragmentAndLinkBuffer_STRUCT Element = fragmentLLBuffer[offset];
-                    uint uSampleIdx = UnpackSampleIdx(Element.depth);
-                    if (uSampleIdx == uSampleIndex)
+                    uint uCoverage = UnpackSampleIdx(Element.depth);
+                    if (uCoverage & (1 << uSampleIdx ))
                     {
                         tempFrag[numFragments] = Element;
-                        numFragments += 1;
+                        numFragments++;
                     }
                     
-                    numFragments++;
-                    offset = (numFragments >= MAXFRAGS) ? 0 : fragmentLLBuffer[offset].next;
-                }
-                
+                    offset = (numFragments >= MAX_NUM_FRAGS) ? 0 : fragmentLLBuffer[offset].next;
+                }   
                 
                 // sort the array from biggest to smallest depth?
                 for(uint i = 1; i < numFragments; i++)
@@ -142,36 +95,14 @@ Shader "Hidden/RenderLLOIT"
                     FragmentAndLinkBuffer_STRUCT frag = tempFrag[i];
                     
                     uint j = i;
-                    while(j > 0 && frag.depth > tempFrag[j-1].depth)
+                    while(j > 0 && UnpackDepth(frag.depth) > UnpackDepth(tempFrag[j-1].depth))
                     {
-                        //tempFrag[j] = tempFrag[j-1];
                         FragmentAndLinkBuffer_STRUCT temp = tempFrag[j - 1];
                         tempFrag[j - 1] = tempFrag[j];
                         tempFrag[j] = temp;
                         j--;
                     }
-                    // insert frag 
-                    //tempFrag[j] = frag;
                 }
-                
-                return half4(col,1.0);
-                return half4(half(numFragments)/half(MAXFRAGS),0.,0.,0.0);
-                /*
-                // Sort pixels in depth
-                for (int i = 0; i < numFragments - 1; i++)
-                {
-                    for (int j = i + 1; j > 0; j--)
-                    {
-                        float depth = UnpackDepth(tempFrag[j].depth);
-                        float previousElementDepth = UnpackDepth(tempFrag[j - 1].depth);
-                        if (previousElementDepth < depth)
-                        {
-                            FragmentAndLinkBuffer_STRUCT temp = tempFrag[j - 1];
-                            tempFrag[j - 1] = tempFrag[j];
-                            tempFrag[j] = temp;
-                        }
-                    }
-                }*/
                 
                 // blend the pixels together
                 for(uint k=0; k < numFragments; k++)

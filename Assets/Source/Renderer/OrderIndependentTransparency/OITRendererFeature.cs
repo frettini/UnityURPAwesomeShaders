@@ -4,10 +4,14 @@ using UnityEngine.Rendering.Universal;
 public class OITRendererFeature : ScriptableRendererFeature
 {
     private OITRendererPass oitRendererPass;
+    private ScriptableRenderPassInput requirements = ScriptableRenderPassInput.Color;
     public override void Create()
     {
         oitRendererPass?.CleanUp();
-        oitRendererPass = new OITRendererPass();    
+        oitRendererPass = new OITRendererPass();
+        
+        ScriptableRenderPassInput modifiedRequirements = requirements;
+        oitRendererPass.ConfigureInput(modifiedRequirements);
     }
 
     public override void AddRenderPasses(ScriptableRenderer renderer, ref RenderingData renderingData)

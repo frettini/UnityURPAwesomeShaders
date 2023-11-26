@@ -159,6 +159,7 @@ Shader"Custom/ShellEffect/Grass"
                 half normHeight = normalizedHeight(layerHeight);
                 
                 float2 scaledUV = _GridScale*IN.uv;
+                float3 windCol = tex2D(_WindTex, IN.uv).rgb;
                 uint2 grid = uint2(scaledUV + tex2D(_WindTex, IN.uv + _Time.y * 0.1).x * normHeight * 3.);
                 
                 #if 0
@@ -167,6 +168,7 @@ Shader"Custom/ShellEffect/Grass"
                 half cellHeight = max(hash(grid.x + (grid.y<<16)) * _Height, _MinHeight);
                 #endif
                 
+                cellHeight = cellHeight * (windCol.g + 0.5);
                 
                 if(IN.layerNum == 0)
                 {
@@ -186,7 +188,7 @@ Shader"Custom/ShellEffect/Grass"
                     half alpha = 1.;
                     #endif
                     
-                    customColor = half4( tex2D(_WindTex, IN.uv).xyy * (normHeight+0.4), alpha);
+                    customColor = half4( clamp( windCol.xy * (normHeight+0.4),0.,0.6),0., alpha);
                 }
                 
                 clip(customColor.a - 0.1);

@@ -23,16 +23,14 @@ class OITRendererPass : ScriptableRenderPass
         CommandBufferPool.Release(cmd);
     }
 
+
     public override void Execute(ScriptableRenderContext context, ref RenderingData renderingData)
     {
         CommandBuffer cmd = CommandBufferPool.Get("OITRendererPass");
         cmd.Clear();
-        LinkedList.Execute(cmd,
+        LinkedList.Execute(cmd, ref renderingData,
                             renderingData.cameraData.renderer.cameraColorTargetHandle.nameID,
                             renderingData.cameraData.renderer.cameraColorTargetHandle.nameID);
-        //LinkedList.Execute(cmd,
-        //            renderingData.cameraData.renderer.cameraColorTarget,
-        //            renderingData.cameraData.renderer.cameraColorTarget);
         context.ExecuteCommandBuffer(cmd);
         CommandBufferPool.Release(cmd);
     }
