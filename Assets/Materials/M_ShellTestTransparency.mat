@@ -16,7 +16,7 @@ Material:
   m_LightmapFlags: 4
   m_EnableInstancingVariants: 0
   m_DoubleSidedGI: 0
-  m_CustomRenderQueue: -1
+  m_CustomRenderQueue: 2100
   stringTagMap: {}
   disabledShaderPasses: []
   m_LockedProperties: 
@@ -48,7 +48,7 @@ Material:
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _HeightTex:
-        m_Texture: {fileID: 2800000, guid: 74c6498d864b791408f65f661e258d55, type: 3}
+        m_Texture: {fileID: 2800000, guid: b0109bd2a42f00640ad142c480cdfe36, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _MainTex:
@@ -57,6 +57,10 @@ Material:
         m_Offset: {x: 0, y: 0}
     - _MetallicGlossMap:
         m_Texture: {fileID: 0}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _NoiseTex:
+        m_Texture: {fileID: 2800000, guid: 336123974500c4145b4e3cdbaadf76fd, type: 3}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
     - _OcclusionMap:
@@ -102,8 +106,8 @@ Material:
     - _GlossMapScale: 0
     - _Glossiness: 0
     - _GlossyReflections: 0
-    - _GridScale: 50
-    - _Height: 1
+    - _GridScale: 1
+    - _Height: 0.01
     - _Metallic: 0
     - _MinHeight: 0
     - _OcclusionStrength: 1
@@ -119,7 +123,7 @@ Material:
     - _WorkflowMode: 1
     - _ZWrite: 1
     m_Colors:
-    - _BaseColor: {r: 1, g: 0.83396226, b: 0.83396226, a: 0.36862746}
+    - _BaseColor: {r: 0, g: 0.9545178, b: 0.9647059, a: 0.20784314}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.19999996, g: 0.19999996, b: 0.19999996, a: 1}

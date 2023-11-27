@@ -47,6 +47,11 @@ class LinkedListOIT
     {
         cmd.ClearRandomWriteTargets();
 
+        if(LLRendererMaterial == null)
+        {
+            return;
+        }
+
         LLRendererMaterial.SetBuffer(startOffsetBufferId, startOffsetBuffer);
         LLRendererMaterial.SetBuffer(fragmentLLBufferId, fragmentLLBuffer);
 
@@ -67,9 +72,9 @@ class LinkedListOIT
         screenWidth = Screen.width;
         
         int bufferSize = screenHeight * screenWidth * maxNumLayers;
-        Debug.Log(screenHeight);
-        Debug.Log(screenWidth);
-        Debug.Log(maxNumLayers);
+        //Debug.Log(screenHeight);
+        //Debug.Log(screenWidth);
+        //Debug.Log(maxNumLayers);
         int stride = sizeof(uint) * 3;
         fragmentLLBuffer = new ComputeBuffer(bufferSize, stride, ComputeBufferType.Counter);
 

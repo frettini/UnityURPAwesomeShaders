@@ -1,5 +1,5 @@
 // This shader fills the mesh shape with a color predefined in the code.
-Shader"Custom/ShellEffect/Grass"
+Shader"Custom/ShellEffect/Texture"
 {
     // The properties block of the Unity shader. In this example this block is empty
     // because the output color is predefined in the fragment shader code.
@@ -9,7 +9,7 @@ Shader"Custom/ShellEffect/Grass"
         _MinHeight("Minimum Height", Range(0,4)) = 0
         _Height("Height", Range(0.01,4)) = 1
         _GridScale("Grid Scale", Range(1,1000)) = 50
-        _WindTex ("Wind Texture", 2D) = "white" {}
+        _HeightTex ("Height Texture", 2D) = "white" {}
     }
 
     // The SubShader block containing the Shader code. 
@@ -18,16 +18,9 @@ Shader"Custom/ShellEffect/Grass"
         // SubShader Tags define when and under which conditions a SubShader block or
         // a pass is executed.
         Tags { "RenderType" = "Opaque" "RenderPipeline" = "UniversalRenderPipeline" }
-        //Tags { "RenderType" = "Opaque" "Queue" = "AlphaTest" "RenderPipeline" = "UniversalRenderPipeline" }
 
         Pass
         {
-            // Alpha transparency, doesn't work well because of self coverage!
-            //Blend SrcAlpha OneMinusSrcAlpha
-            //ZWrite Off
-            
-            //AlphaToMask [_MSAA_ALPHA]
-            
             // To make the triangle two faced
             Cull Off
             
@@ -44,7 +37,8 @@ Shader"Custom/ShellEffect/Grass"
             // macros and functions, and also contains #include references to other
             // HLSL files (for example, Common.hlsl, SpaceTransforms.hlsl, etc.).
             #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/Core.hlsl"            
-
+            #include "Packages/com.unity.render-pipelines.universal/ShaderLibrary/UnityInput.hlsl"
+            
             //#define CONE
             #define SQUARE
             
@@ -56,7 +50,7 @@ Shader"Custom/ShellEffect/Grass"
                 half _MinHeight;
                 half _Height;
                 half _GridScale;
-                sampler2D _WindTex;
+                sampler2D _HeightTex;
             CBUFFER_END
     
             // from : https://www.shadertoy.com/view/WttXWX
@@ -155,20 +149,15 @@ Shader"Custom/ShellEffect/Grass"
             {
                 // Defining the color variable and returning it.
                 half4 customColor = half4(0.,0.,0.,0.);
-                half layerHeight = IN.layerNum * getHeightBetweenLayers();
-                half normHeight = normalizedHeight(layerHeight);
+                uint2 grid = uint2(_GridScale*IN.uv);
                 
-                float2 scaledUV = _GridScale*IN.uv;
-                float3 windCol = tex2D(_WindTex, IN.uv).rgb;
-                uint2 grid = uint2(scaledUV + tex2D(_WindTex, IN.uv + _Time.y * 0.1).x * normHeight * 3.);
-                
-                #if 0
-                half cellHeight = tex2D(_WindTex, IN.uv).x * _Height;
+                #if 1 
+                half cellHeight = tex2D(_HeightTex, IN.uv).x * _Height;
                 #else
                 half cellHeight = max(hash(grid.x + (grid.y<<16)) * _Height, _MinHeight);
                 #endif
-                
-                cellHeight = cellHeight * (windCol.g + 0.5);
+                half layerHeight = IN.layerNum * getHeightBetweenLayers();
+                half normHeight = normalizedHeight(layerHeight);
                 
                 if(IN.layerNum == 0)
                 {
@@ -178,8 +167,8 @@ Shader"Custom/ShellEffect/Grass"
                 //return half4(frac(scale*IN.uv).x, frac(scale*IN.uv).y, 0., 1.);
                 if(cellHeight > layerHeight)
                 {
-                    half2 gridUV = frac(scaledUV);
-                    gridUV = (gridUV-0.5)*2. ;
+                    half2 gridUV = frac(_GridScale*IN.uv);
+                    gridUV = (gridUV-0.5)*2.;
                     half cellradius = 1. - layerHeight / cellHeight;
                     
                     # if defined(CONE)
@@ -188,7 +177,7 @@ Shader"Custom/ShellEffect/Grass"
                     half alpha = 1.;
                     #endif
                     
-                    customColor = half4( clamp( windCol.xy * (normHeight+0.4),0.,0.6),0., alpha);
+                    customColor = half4( _BaseColor.xyz * (normHeight+0.4), alpha);
                 }
                 
                 clip(customColor.a - 0.1);
