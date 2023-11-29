@@ -20,7 +20,6 @@ class LinkedListOIT
 
     public LinkedListOIT()
     {
-        LLRendererMaterial = new Material(Resources.Load<Shader>("RenderLLOIT"));
         startOffsetBufferId = Shader.PropertyToID("startOffsetBuffer");
         fragmentLLBufferId = Shader.PropertyToID("fragmentLLBuffer");
 
@@ -32,7 +31,7 @@ class LinkedListOIT
 
      public void PreRender(CommandBuffer cmd)
     {
-        if (Screen.width != screenWidth || Screen.height != screenHeight)
+        if (Screen.width != screenWidth || Screen.height != screenHeight || LLRendererMaterial == null)
         {
             SetupResources();
         }
@@ -43,11 +42,12 @@ class LinkedListOIT
         cmd.SetRandomWriteTarget(2, startOffsetBuffer);
     }
 
-    public void Execute(CommandBuffer cmd, ref RenderingData renderingData, RenderTargetIdentifier src, RenderTargetIdentifier dest)
+    public void Execute(CommandBuffer cmd, ref RenderingData renderingData, RTHandle src, RTHandle dest)
     {
         cmd.ClearRandomWriteTargets();
 
-        if(LLRendererMaterial == null)
+        if(LLRendererMaterial == null 
+            || renderingData.cameraData.isPreviewCamera)
         {
             return;
         }
@@ -55,7 +55,10 @@ class LinkedListOIT
         LLRendererMaterial.SetBuffer(startOffsetBufferId, startOffsetBuffer);
         LLRendererMaterial.SetBuffer(fragmentLLBufferId, fragmentLLBuffer);
 
-        cmd.Blit( src, dest, LLRendererMaterial);
+        Blitter.BlitCameraTexture(cmd, 
+            src, //renderingData.cameraData.renderer.cameraColorTargetHandle, 
+            dest, //renderingData.cameraData.renderer.cameraColorTargetHandle,
+            LLRendererMaterial, 0);
     }
 
     public void CleanUp()
@@ -68,13 +71,15 @@ class LinkedListOIT
     {
         CleanUp();
 
+        if(LLRendererMaterial == null)
+        {
+            LLRendererMaterial = new Material(Resources.Load<Shader>("RenderLLOIT"));
+        }
+
         screenHeight = Screen.height;
         screenWidth = Screen.width;
         
         int bufferSize = screenHeight * screenWidth * maxNumLayers;
-        //Debug.Log(screenHeight);
-        //Debug.Log(screenWidth);
-        //Debug.Log(maxNumLayers);
         int stride = sizeof(uint) * 3;
         fragmentLLBuffer = new ComputeBuffer(bufferSize, stride, ComputeBufferType.Counter);
 
