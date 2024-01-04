@@ -2,7 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-class LinkedListOIT
+class LinkedListOIT : IOrderIndependentTransparency
 {
     private int screenHeight, screenWidth;
     private readonly int maxNumLayers = 16;
@@ -42,7 +42,7 @@ class LinkedListOIT
         cmd.SetRandomWriteTarget(2, startOffsetBuffer);
     }
 
-    public void Execute(CommandBuffer cmd, ref RenderingData renderingData, RTHandle src, RTHandle dest)
+    public void Execute(ScriptableRenderContext context, CommandBuffer cmd, ref RenderingData renderingData, RTHandle src, RTHandle dest)
     {
         cmd.ClearRandomWriteTargets();
 

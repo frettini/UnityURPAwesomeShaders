@@ -41,8 +41,8 @@ Shader"Custom/ShellEffect/OIT"
             
             #include "Assets/Shaders/Common.hlsl"
             #include "Assets/Shaders/ShellEffect/ShellCommon.hlsl"
-            #include "Assets/Shaders/OIT/OITCommon.hlsl"
-            #include "Assets/Shaders/OIT/OITLinkedListCommon.hlsl"
+            #include "Assets/Shaders/OIT/LinkedList/OITCommon.hlsl"
+            #include "Assets/Shaders/OIT/LinkedList/OITLinkedListCommon.hlsl"
             
             #define NUM_LAYERS 14
             

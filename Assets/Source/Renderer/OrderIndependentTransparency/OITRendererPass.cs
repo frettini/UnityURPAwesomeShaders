@@ -5,12 +5,12 @@ using UnityEngine.Rendering.Universal;
 
 class OITRendererPass : ScriptableRenderPass
 {
-    LinkedListOIT LinkedList;
+    IOrderIndependentTransparency OrderIndependentTransparency;
 
     public OITRendererPass()
     {
         renderPassEvent = RenderPassEvent.BeforeRenderingTransparents;
-        LinkedList = new LinkedListOIT();
+        OrderIndependentTransparency = new LinkedListOIT();
         RenderPipelineManager.beginContextRendering += PreRender;
     }
 
@@ -18,7 +18,7 @@ class OITRendererPass : ScriptableRenderPass
     {
         CommandBuffer cmd = CommandBufferPool.Get("OITRendererPass");
         cmd.Clear();
-        LinkedList.PreRender(cmd);
+        OrderIndependentTransparency.PreRender(cmd);
         context.ExecuteCommandBuffer(cmd);
         CommandBufferPool.Release(cmd);
     }
@@ -28,7 +28,7 @@ class OITRendererPass : ScriptableRenderPass
     {
         CommandBuffer cmd = CommandBufferPool.Get("OITRendererPass");
         cmd.Clear();
-        LinkedList.Execute(cmd, ref renderingData,
+        OrderIndependentTransparency.Execute(context, cmd, ref renderingData,
                             renderingData.cameraData.renderer.cameraColorTargetHandle,
                             renderingData.cameraData.renderer.cameraColorTargetHandle);
         context.ExecuteCommandBuffer(cmd);
@@ -37,7 +37,7 @@ class OITRendererPass : ScriptableRenderPass
 
     public void CleanUp()
     {
-        LinkedList.CleanUp();
+        OrderIndependentTransparency.CleanUp();
         RenderPipelineManager.beginContextRendering -= PreRender;
     }
 }
