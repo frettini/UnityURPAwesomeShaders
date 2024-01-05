@@ -1,4 +1,4 @@
-This repo is a container for various Unity shaders and rendering techniques I encounter and want to try out. This is using Unity 2022.3.8.
+This repo is a container for various Unity shaders and rendering techniques I encounter and want to implement. This is using Unity 2022.3.8.
 Here are some noteworthy shaders I have implemented so far:
 
 * shell effect : usually used as a way to render fur, I implemented a shell effect that could be used for grass and hologram effects.
