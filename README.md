@@ -7,3 +7,7 @@ Here are some noteworthy shaders I have implemented so far:
 * Stochastic Transparency: See this repo for more info: https://github.com/frettini/StochasticTransparency
   
 This is completely experimental, by no means ready for production but I'll be glad if it is of any use to anyone :)
+
+| Grass Shell Effect | Hologram Shell Effect |
+|---|---|
+| ![](https://github.com/frettini/UnityURPAwesomeShaders/blob/master/Docs/GrassShellEffect.jpg) | ![](https://github.com/frettini/UnityURPAwesomeShaders/blob/master/Docs/HologramShellEffect.jpg) |
